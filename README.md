@@ -44,11 +44,14 @@ ansible-playbook -i inventory/test.yml site.yml
 
 <img src = "img/02.png" width = 100%>
 
-Видим, что some_fact берётся из **group_vars/all/examp.yml** и имеет значение 12.
+Видим, что **some_fact** равняется значению **12**.
 
-2. Изменяем значение в файле **group_vars/all/examp.yml** на:
+2. Это значение берётся из **group_vars/all/examp.yml**. Изменяем значение на all **default fact**:
 
 ```
 ---
 some_fact: "all default fact"
 ```
+Повторяем запуск **playbook**:
+
+<img src = "img/03.png" width = 100%>
