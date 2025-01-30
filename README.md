@@ -174,7 +174,7 @@ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
 ```
 <img src = "img/07.png" width = 100%>
 
-Выполняем команду для получения списка плагинов с подключениями:
+9. Выполняем команду для получения списка плагинов с подключениями:
 
 ```
 ansible-doc -t connection -l
@@ -183,5 +183,3 @@ ansible-doc -t connection -l
 <img src = "img/08.png" width = 100%>
 
 Для работы на **control node** в **prod.yml** подойдёт подключение **ansible.builtin.local**.
-
-9. 
