@@ -114,3 +114,10 @@ ansible-vault encrypt group_vars/el/examp.yml
 
 <img src = "img/06.png" width = 100%>
 
+8. Пробуем запустить **playbook**:
+
+```
+ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
+```
+<img src = "img/07.png" width = 100%>
+
