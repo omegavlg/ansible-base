@@ -56,7 +56,60 @@ some_fact: "all default fact"
 
 <img src = "img/03.png" width = 100%>
 
-3. Подготовлены окружения на базе **docker**
+3. Подготовлены окружения на базе **docker**:
+
+Для контейнера с **ubuntu** выполняем команду:
+
+```
+docker run -d --name ubuntu --rm --privileged ubuntu:latest sleep infinity
+```
+
+Для контейнера с **CentOS 7** выполняем следующие шаги:
+
+Создаем **Dockerfile**:
+
+```
+# Используем базовый образ CentOS 7
+FROM centos:7
+
+# Обновляем зеркала CentOS на Vault
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+
+# Устанавливаем EPEL и Development Tools
+RUN yum install -y epel-release && \
+    yum groupinstall -y "Development Tools"
+
+# Устанавливаем зависимости для Python 3.9
+RUN yum install -y gcc gcc-c++ make zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel \
+    openssl-devel xz xz-devel libffi-devel wget
+
+# Скачиваем и компилируем Python 3.9 вручную
+RUN cd /usr/src && \
+    wget https://www.python.org/ftp/python/3.9.18/Python-3.9.18.tgz && \
+    tar xvf Python-3.9.18.tgz && \
+    cd Python-3.9.18 && \
+    ./configure --enable-optimizations && \
+    make altinstall
+
+# Удаляем временные файлы
+RUN rm -rf /usr/src/Python-3.9.18*
+
+# Создаем симлинки
+RUN ln -sf /usr/local/bin/python3.9 /usr/bin/python3 && \
+    ln -sf /usr/local/bin/pip3.9 /usr/bin/pip3
+
+# Команда по умолчанию
+CMD ["bash"]
+```
+
+Собираем и запускаем контейнер:
+```
+docker build -t centos-python39 .
+```
+```
+docker run --name centos --rm --privileged centos-python39:latest sleep infinity
+```
 
 4. Выполняем запуск **playbook** на окружении из **prod.yml**.
 
@@ -121,3 +174,14 @@ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
 ```
 <img src = "img/07.png" width = 100%>
 
+Выполняем команду для получения списка плагинов с подключениями:
+
+```
+ansible-doc -t connection -l
+```
+
+<img src = "img/08.png" width = 100%>
+
+Для работы на **control node** в **prod.yml** подойдёт подключение **ansible.builtin.local**.
+
+9. 
