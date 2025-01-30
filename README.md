@@ -46,7 +46,7 @@ ansible-playbook -i inventory/test.yml site.yml
 
 Видим, что **some_fact** равняется значению **12**.
 
-2. Это значение берётся из **group_vars/all/examp.yml**. Изменяем значение на all **default fact**:
+2. Это значение берётся из **group_vars/all/examp.yml**. Изменяем значение на **all default fact**:
 
 ```
 ---
@@ -55,3 +55,33 @@ some_fact: "all default fact"
 Повторяем запуск **playbook**:
 
 <img src = "img/03.png" width = 100%>
+
+3. Подготовлены окружения на базе **docker**
+
+4. Выполняем запуск **playbook** на окружении из **prod.yml**.
+
+```
+ansible-playbook -i inventory/prod.yml site.yml
+```
+
+<img src = "img/04.png" width = 100%>
+
+ Видим полученные значения **some_fact**:
+
+ Для **centos7**:
+
+```
+ok: [centos7] => {
+    "msg": "el"
+}
+```
+
+Для **ubuntu**:
+
+```
+ok: [ubuntu] => {
+    "msg": "deb"
+}
+```
+
+ 
