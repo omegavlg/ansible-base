@@ -84,4 +84,22 @@ ok: [ubuntu] => {
 }
 ```
 
- 
+5. Обновляем файлы **group_vars/deb/examp.yml** и **group_vars/el/examp.yml**:
+
+**group_vars/deb/examp.yml**
+
+```
+---
+some_fact: "deb default fact"
+```
+
+**group_vars/el/examp.yml**
+
+```
+---
+some_fact: "el default fact"
+```
+6. Повторяем запуск **playbook**:
+
+<img src = "img/05.png" width = 100%>
+
