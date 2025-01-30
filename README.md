@@ -103,3 +103,14 @@ some_fact: "el default fact"
 
 <img src = "img/05.png" width = 100%>
 
+7. При помощи **ansible-vault** шифруем факты в **group_vars/deb** и **group_vars/el** с паролем **netology**.
+
+```
+ansible-vault encrypt group_vars/deb/examp.yml
+```
+```
+ansible-vault encrypt group_vars/el/examp.yml
+```
+
+<img src = "img/06.png" width = 100%>
+
