@@ -239,7 +239,7 @@ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
 
 <img src = "img/09.png" width = 100%>
 
-Видим полуяенные значения для some_fact:
+Видим полученные значения для some_fact:
 
 ```
 ubuntu → "deb default fact"
@@ -247,7 +247,7 @@ centos7 → "el default fact"
 localhost → "all default fact"
 ```
 
-12.  При помощи ansible-vault расшифровываем все зашифрованные файлы с переменными.
+12.  При помощи **ansible-vault** расшифровываем все зашифрованные файлы с переменными.
 
 ```
 ansible-vault decrypt group_vars/deb/examp.yml
@@ -258,7 +258,7 @@ ansible-vault decrypt group_vars/el/examp.yml
 
 <img src = "img/10.png" width = 100%>
 
-13. Зашифровываем значение `PaSSw0rd` для переменной `some_fact` паролем `netology` и добавляем полученное значение в `group_vars/all/exmp.yml`.
+13. Зашифровываем значение **PaSSw0rd** для переменной **some_fact** паролем **netology** и добавляем полученное значение в **group_vars/all/exmp.yml**.
 
 ```
 ansible-vault encrypt_string 'PaSSw0rd' --name some_fact --vault-password-file <(echo -n "netology")
@@ -308,3 +308,53 @@ some_fact: "fedora default fact"
         ansible_connection: docker
 ```
 
+Запускаем контейнер с **fedora**:
+
+```
+docker run -d --name fedora --rm --privileged pycontribs/fedora sleep infinity
+```
+
+Выполняем запуск **playbook**:
+
+<img src = "img/13.png" width = 100%>
+
+16. Для автоматизации всего вышеперечисленного процесса напишем bash-скрипт:
+
+**setup_env.sh**
+
+```
+#!/bin/bash
+
+set -e  # Останавливаем выполнение при ошибке
+
+# Собираем кастомный образ для Ubuntu
+echo "Строим кастомный Docker-образ для Ubuntu с Python..."
+docker build -t custom_ubuntu -f ubuntu/Dockerfile .
+
+# Собираем кастомный образ для CentOS
+echo "Строим кастомный Docker-образ для CentOS с Python..."
+docker build -t custom_centos -f centos/Dockerfile .
+
+# Запускаем образ для Ubuntu с кастомным образом
+echo "Запуск Docker-контейнера Ubuntu..."
+docker run -d --name ubuntu --rm --privileged custom_ubuntu sleep infinity
+
+# Запускаем образ для CentOS с кастомным образом
+echo "Запуск Docker-контейнера CentOS 7..."
+docker run -d --name centos7 --rm --privileged custom_centos sleep infinity
+
+# Запускаем образ для Fedora
+echo "Запуск Docker-контейнера Fedora..."
+docker run -d --name fedora --rm --privileged pycontribs/fedora sleep infinity
+
+# Запускаем Ansible playbook
+echo "Запуск Ansible playbook..."
+ansible-playbook -i playbook/inventory/prod.yml playbook/site.yml --ask-vault-pass
+
+# Остонавливаем все контейнеры
+echo "Остановка контейнеров..."
+docker stop ubuntu centos7 fedora
+
+echo "Готово!"
+```
+Данный скрипт выполнит сборку и запуск необходимых образов, запустит **playbook** и в конце остановит контейнеры.
