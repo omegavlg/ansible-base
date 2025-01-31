@@ -105,10 +105,10 @@ CMD ["bash"]
 
 Собираем и запускаем контейнер:
 ```
-docker build -t centos-python3.9 .
+docker build -t centos7 .
 ```
 ```
-docker run -d --name centos --rm --privileged centos-python3.9:latest sleep infinity
+docker run -d --name centos7 --rm --privileged centos7:latest sleep infinity
 ```
 
 4. Выполняем запуск **playbook** на окружении из **prod.yml**.
@@ -205,5 +205,9 @@ ansible-doc -t connection -l
 ```
 
 11. Выполняем запуск **playbook** на окружении из **prod.yml**.
+
+```
+ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
+```
 
 <img src = "img/09.png" width = 100%>
