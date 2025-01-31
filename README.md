@@ -276,7 +276,7 @@ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
 
 Видим, что для **localhost** применился новый **fact**.
 
-15. Добавляем новую группп хостов для **group_vars/fedora** и создаем для нее переменную **"fedora default fact"**:
+15. Добавляем новую группп хостов для **group_vars/fed** и создаем для нее переменную **"fedora default fact"**:
 
 **examp.yml**
 
