@@ -48,6 +48,8 @@ ansible-playbook -i inventory/test.yml site.yml
 
 2. Это значение берётся из **group_vars/all/examp.yml**. Изменяем значение на **all default fact**:
 
+**examp.yml**
+
 ```
 ---
 some_fact: "all default fact"
@@ -58,10 +60,32 @@ some_fact: "all default fact"
 
 3. Подготовлены окружения на базе **docker**:
 
-Для контейнера с **ubuntu** выполняем команду:
+Для контейнера с **ubuntu** ввыполняем следующие шаги:
+
+Создаем **Dockerfile**:
 
 ```
-docker run -d --name ubuntu --rm --privileged ubuntu:latest sleep infinity
+# Используем официальный образ Ubuntu
+FROM ubuntu:latest
+
+# Устанавливаем Python и необходимые пакеты, а затем очищаем кеш
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Делаем Python3 доступным как "python"
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# Запуск в фоновом режиме
+CMD ["sleep", "infinity"]
+```
+
+Собираем и запускаем контейнер:
+```
+docker build -t custom_ubuntu -f ubuntu/Dockerfile .
+```
+```
+docker run -d --name ubuntu --rm --privileged custom_ubuntu:latest sleep infinity
 ```
 
 Для контейнера с **CentOS 7** выполняем следующие шаги:
@@ -69,8 +93,8 @@ docker run -d --name ubuntu --rm --privileged ubuntu:latest sleep infinity
 Создаем **Dockerfile**:
 
 ```
-# Используем базовый образ CentOS 7
-FROM centos:7
+# Этап сборки Python
+FROM centos:7 AS builder
 
 # Обновляем зеркала CentOS на Vault
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
@@ -92,8 +116,11 @@ RUN cd /usr/src && \
     ./configure --enable-optimizations && \
     make altinstall
 
-# Удаляем временные файлы
-RUN rm -rf /usr/src/Python-3.9.18*
+# Этап конечного образа
+FROM centos:7
+
+# Копируем скомпилированный Python и необходимые файлы из этапа сборки
+COPY --from=builder /usr/local /usr/local
 
 # Создаем симлинки
 RUN ln -sf /usr/local/bin/python3.9 /usr/bin/python3 && \
@@ -105,10 +132,10 @@ CMD ["bash"]
 
 Собираем и запускаем контейнер:
 ```
-docker build -t centos7 .
+docker build -t custom_centos -f centos/Dockerfile .
 ```
 ```
-docker run -d --name centos7 --rm --privileged centos7:latest sleep infinity
+docker run -d --name centos7 --rm --privileged custom_centos:latest sleep infinity
 ```
 
 4. Выполняем запуск **playbook** на окружении из **prod.yml**.
@@ -119,7 +146,7 @@ ansible-playbook -i inventory/prod.yml site.yml
 
 <img src = "img/04.png" width = 100%>
 
- Видим полученные значения **some_fact**:
+Видим полученные значения **some_fact**:
 
  Для **centos7**:
 
@@ -211,3 +238,73 @@ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
 ```
 
 <img src = "img/09.png" width = 100%>
+
+Видим полуяенные значения для some_fact:
+
+```
+ubuntu → "deb default fact"
+centos7 → "el default fact"
+localhost → "all default fact"
+```
+
+12.  При помощи ansible-vault расшифровываем все зашифрованные файлы с переменными.
+
+```
+ansible-vault decrypt group_vars/deb/examp.yml
+```
+```
+ansible-vault decrypt group_vars/el/examp.yml
+```
+
+<img src = "img/10.png" width = 100%>
+
+13. Зашифровываем значение `PaSSw0rd` для переменной `some_fact` паролем `netology` и добавляем полученное значение в `group_vars/all/exmp.yml`.
+
+```
+ansible-vault encrypt_string 'PaSSw0rd' --name some_fact --vault-password-file <(echo -n "netology")
+```
+
+<img src = "img/11.png" width = 100%>
+
+14. Выполняем запуск **playbook** на окружении из **prod.yml**.
+
+```
+ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
+```
+
+<img src = "img/12.png" width = 100%>
+
+Видим, что для **localhost** применился новый **fact**.
+
+15. Добавляем новую группп хостов для **group_vars/fedora** и создаем для нее переменную **"fedora default fact"**:
+
+**examp.yml**
+
+```
+---
+some_fact: "fedora default fact"
+```
+Файл **prod.yml** приводим к следующему виду:
+
+**prod.yml**
+
+```
+---
+  el:
+    hosts:
+      centos7:
+        ansible_connection: docker
+  deb:
+    hosts:
+      ubuntu:
+        ansible_connection: docker
+  local:
+    hosts:
+      localhost:
+        ansible_connection: local
+  fed:
+    hosts:
+      fedora:
+        ansible_connection: docker
+```
+
