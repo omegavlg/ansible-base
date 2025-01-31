@@ -105,10 +105,10 @@ CMD ["bash"]
 
 Собираем и запускаем контейнер:
 ```
-docker build -t centos-python39 .
+docker build -t centos-python3.9 .
 ```
 ```
-docker run --name centos --rm --privileged centos-python39:latest sleep infinity
+docker run -d --name centos --rm --privileged centos-python3.9:latest sleep infinity
 ```
 
 4. Выполняем запуск **playbook** на окружении из **prod.yml**.
@@ -183,3 +183,27 @@ ansible-doc -t connection -l
 <img src = "img/08.png" width = 100%>
 
 Для работы на **control node** в **prod.yml** подойдёт подключение **ansible.builtin.local**.
+
+10. Файл **prod.yml** приводим к следующему виду:
+
+**prod.yml**
+
+```
+---
+  el:
+    hosts:
+      centos7:
+        ansible_connection: docker
+  deb:
+    hosts:
+      ubuntu:
+        ansible_connection: docker
+  local:
+    hosts:
+      localhost:
+        ansible_connection: local
+```
+
+11. Выполняем запуск **playbook** на окружении из **prod.yml**.
+
+<img src = "img/09.png" width = 100%>
